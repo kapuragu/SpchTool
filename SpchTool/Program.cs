@@ -11,9 +11,9 @@ namespace SpchTool
     internal static class Program
     {
         private const string DefaultDictionaryFileName = "spch_dictionary.txt";
-        //private const string DefaultLabelDictionaryFileName = "spch_label_dictionary.txt";
-        //private const string DefaultVoiceTypeDictionaryFileName = "spch_voicetype_dictionary.txt";
-        //private const string DefaultAnimDictionaryFileName = "spch_anim_dictionary.txt";
+        // private const string DefaultLabelDictionaryFileName = "spch_label_dictionary.txt";
+        // private const string DefaultVoiceTypeDictionaryFileName = "spch_voicetype_dictionary.txt";
+        // private const string DefaultAnimDictionaryFileName = "spch_anim_dictionary.txt";
         private const string DefaultHashDumpFileName = "spch_hash_dump_dictionary.txt";
 
         private static void Main(string[] args)
