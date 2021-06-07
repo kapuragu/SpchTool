@@ -11,22 +11,29 @@ namespace SpchTool
 {
     internal static class Program
     {
-        private const string DefaultDictionaryFileName = "spch_dictionary.txt";
-        // private const string DefaultLabelDictionaryFileName = "spch_label_dictionary.txt";
-        // private const string DefaultVoiceTypeDictionaryFileName = "spch_voicetype_dictionary.txt";
-        // private const string DefaultAnimDictionaryFileName = "spch_anim_dictionary.txt";
         private const string DefaultHashDumpFileName = "spch_hash_dump_dictionary.txt";
 
         private static void Main(string[] args)
         {
             var hashManager = new HashManager();
-            var dicitonaryPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + DefaultDictionaryFileName;
 
-            // Read hash dictionaries
-            if (File.Exists(dicitonaryPath))
+            // Multi-Dictionary Reading!!
+            List<string> dictionaryNames = new List<string>
             {
-                hashManager.StrCode32LookupTable = MakeHashLookupTableFromFile(dicitonaryPath, FoxHash.Type.StrCode32);
-            }
+                "spch_dictionary.txt",
+                "spch_label_dictionary.txt",
+                "spch_voicetype_dictionary.txt",
+                "spch_anim_dictionary.txt",
+                "spch_user_dictionary.txt",
+            };
+
+            List<string> dictionaries = new List<string>();
+
+            foreach (var dictionaryPath in dictionaryNames)
+                if (File.Exists(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath))
+                    dictionaries.Add(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath);
+
+			hashManager.StrCode32LookupTable = MakeHashLookupTableFromFiles(dictionaries, FoxHash.Type.StrCode32);
 
             foreach (var spchPath in args)
             {
@@ -102,21 +109,24 @@ namespace SpchTool
         }
 
         /// <summary>
-        /// Opens a file containing one string per line, hashes each string, and adds each pair to a lookup table.
+        /// Opens a file containing one string per line from the input table of files, hashes each string, and adds each pair to a lookup table.
         /// </summary>
-        private static Dictionary<uint, string> MakeHashLookupTableFromFile(string path, FoxHash.Type hashType)
+        private static Dictionary<uint, string> MakeHashLookupTableFromFiles(List<string> paths, FoxHash.Type hashType)
         {
             ConcurrentDictionary<uint, string> table = new ConcurrentDictionary<uint, string>();
 
             // Read file
             List<string> stringLiterals = new List<string>();
-            using (StreamReader file = new StreamReader(path))
+            foreach (var dictionary in paths)
             {
-                // TODO multi-thread
-                string line;
-                while ((line = file.ReadLine()) != null)
+                using (StreamReader file = new StreamReader(dictionary))
                 {
-                    stringLiterals.Add(line);
+                    // TODO multi-thread
+                    string line;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        stringLiterals.Add(line);
+                    }
                 }
             }
 

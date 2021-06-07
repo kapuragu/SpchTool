@@ -20,7 +20,7 @@ namespace SpchTool
             SbpListId = reader.ReadUInt32();
             VoiceClipCount = reader.ReadUInt32();
 
-            Console.WriteLine($"Label name: {LabelName}");
+            Console.WriteLine($"Label name: {LabelName.StringLiteral}");
             Console.WriteLine($"Sbp list Id: {SbpListId}");
             Console.WriteLine($"Voice clip count Id: {VoiceClipCount}");
             for (int i = 0; i < VoiceClipCount; i++)
@@ -47,7 +47,7 @@ namespace SpchTool
             SbpListId = uint.Parse(reader["sbpListId"]);
             reader.ReadStartElement("label");
 
-            Console.WriteLine($"Label name: {LabelName}");
+            Console.WriteLine($"Label name: {LabelName.StringLiteral}");
             Console.WriteLine($"Sbp list Id: {SbpListId}");
             while (2 > 1)
             {
@@ -70,7 +70,7 @@ namespace SpchTool
             LabelName.WriteXml(writer, "labelName");
             writer.WriteAttributeString("sbpListId", SbpListId.ToString(CultureInfo.InvariantCulture));
 
-            Console.WriteLine($"Label name: {LabelName}");
+            Console.WriteLine($"Label name: {LabelName.StringLiteral}");
             Console.WriteLine($"Sbp list Id: {SbpListId}");
             foreach (SpchVoiceClip voiceClip in VoiceClips)
             {

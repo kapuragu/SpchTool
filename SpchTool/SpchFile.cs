@@ -15,14 +15,14 @@ namespace SpchTool
         {
             // Read header
             uint signature = reader.ReadUInt32();
-            if (signature!=1751347315) //'SPCH'
+            if (signature!=1751347315) //'spch'
             {
                 Console.WriteLine("Wrong signature!!! Not a SPCH file?");
                 throw new ArgumentOutOfRangeException();
             };
             reader.BaseStream.Position += 2; //ushort endianness
             ushort labelCount = reader.ReadUInt16();
-            reader.BaseStream.Position += 8*labelCount; // Padding of 8 bytes per label
+            reader.BaseStream.Position += 8 * labelCount; // Padding of 8 bytes per label
 
             Console.WriteLine($"Labels count: {labelCount}");
 

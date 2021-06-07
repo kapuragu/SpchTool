@@ -24,9 +24,9 @@ namespace SpchTool
             BeforePause = reader.ReadSingle();
             AfterPause = reader.ReadSingle();
 
-            Console.WriteLine($"    Voice type: {VoiceType}");
+            Console.WriteLine($"    Voice type: {VoiceType.StringLiteral}");
             Console.WriteLine($"    Sbp VoiceClip: {SbpVoiceClip}");
-            Console.WriteLine($"    Animation: {AnimationAct}");
+            Console.WriteLine($"    Animation: {AnimationAct.StringLiteral}");
             Console.WriteLine($"    Pause before: {BeforePause}");
             Console.WriteLine($"    Pause after: {AfterPause}");
         }
@@ -38,9 +38,9 @@ namespace SpchTool
             writer.Write(BeforePause);
             writer.Write(AfterPause);
 
-            Console.WriteLine($"    Voice type: {VoiceType}");
+            Console.WriteLine($"    Voice type: {VoiceType.StringLiteral}");
             Console.WriteLine($"    Sbp VoiceClip: {SbpVoiceClip}");
-            Console.WriteLine($"    Animation: {AnimationAct}");
+            Console.WriteLine($"    Animation: {AnimationAct.StringLiteral}");
             Console.WriteLine($"    Pause before: {BeforePause}");
             Console.WriteLine($"    Pause after: {AfterPause}");
         }
@@ -55,9 +55,9 @@ namespace SpchTool
             AfterPause = Extensions.ParseFloatRoundtrip(reader["afterPause"]);
             reader.ReadStartElement("voiceClip");
 
-            Console.WriteLine($"    Voice type: {VoiceType}");
+            Console.WriteLine($"    Voice type: {VoiceType.StringLiteral}");
             Console.WriteLine($"    Sbp VoiceClip: {SbpVoiceClip}");
-            Console.WriteLine($"    Animation: {AnimationAct}");
+            Console.WriteLine($"    Animation: {AnimationAct.StringLiteral}");
             Console.WriteLine($"    Pause before: {BeforePause}");
             Console.WriteLine($"    Pause after: {AfterPause}");
         }
@@ -70,6 +70,12 @@ namespace SpchTool
             writer.WriteAttributeString("beforePause", BeforePause.ToString(CultureInfo.InvariantCulture));
             writer.WriteAttributeString("afterPause", AfterPause.ToString(CultureInfo.InvariantCulture));
             writer.WriteEndElement();
+
+            Console.WriteLine($"    Voice type: {VoiceType.StringLiteral}");
+            Console.WriteLine($"    Sbp VoiceClip: {SbpVoiceClip}");
+            Console.WriteLine($"    Animation: {AnimationAct.StringLiteral}");
+            Console.WriteLine($"    Pause before: {BeforePause}");
+            Console.WriteLine($"    Pause after: {AfterPause}");
         }
 
         public XmlSchema GetSchema() {return null;}
