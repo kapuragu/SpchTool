@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Reflection;
 
 namespace SpchTool
 {
@@ -19,11 +20,12 @@ namespace SpchTool
         private static void Main(string[] args)
         {
             var hashManager = new HashManager();
+            var dicitonaryPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + DefaultDictionaryFileName;
 
             // Read hash dictionaries
-            if (File.Exists(DefaultDictionaryFileName))
+            if (File.Exists(dicitonaryPath))
             {
-                hashManager.StrCode32LookupTable = MakeHashLookupTableFromFile(DefaultDictionaryFileName, FoxHash.Type.StrCode32);
+                hashManager.StrCode32LookupTable = MakeHashLookupTableFromFile(dicitonaryPath, FoxHash.Type.StrCode32);
             }
 
             foreach (var spchPath in args)
