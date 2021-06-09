@@ -35,6 +35,8 @@ namespace SpchTool
 
 			hashManager.StrCode32LookupTable = MakeHashLookupTableFromFiles(dictionaries, FoxHash.Type.StrCode32);
 
+            List<string> UserStrings = new List<string>();
+
             foreach (var spchPath in args)
             {
                 if (File.Exists(spchPath))
@@ -45,6 +47,7 @@ namespace SpchTool
                     {
                         SpchFile spch = ReadFromXml(spchPath);
                         WriteToBinary(spch, Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(spchPath)) + ".spch");
+                        CollectUserStrings(spch, hashManager, UserStrings);
                     }
                     else if (fileExtension.Equals(".spch", StringComparison.OrdinalIgnoreCase))
                     {
@@ -60,6 +63,7 @@ namespace SpchTool
 
             // Write hash matches output
             WriteHashMatchesToFile(DefaultHashDumpFileName, hashManager);
+            WriteUserStringsToFile(UserStrings);
         }
 
         public static void WriteToBinary(SpchFile spch, string path)
@@ -155,6 +159,36 @@ namespace SpchTool
                     file.WriteLine(entry.Value);
                 }
             }
+        }
+        public static void CollectUserStrings(SpchFile spch, HashManager hashManager, List<string> UserStrings)
+        {
+            foreach (var label in spch.Labels) // Analyze hashes
+            {
+                if (UserStringCheck(label.LabelName.StringLiteral, UserStrings, hashManager))
+                    UserStrings.Add(label.LabelName.StringLiteral);
+                foreach (var voiceClip in label.VoiceClips)
+                {
+                    if (UserStringCheck(voiceClip.VoiceType.StringLiteral, UserStrings, hashManager))
+                        UserStrings.Add(voiceClip.VoiceType.StringLiteral);
+                    if (UserStringCheck(voiceClip.AnimationAct.StringLiteral, UserStrings, hashManager))
+                        UserStrings.Add(voiceClip.AnimationAct.StringLiteral);
+                }
+            }
+        }
+        public static bool UserStringCheck(string userString, List<string> list, HashManager hashManager)
+        {
+            if (!hashManager.StrCode32LookupTable.ContainsValue(userString) && !list.Contains(userString))
+                return true;
+            else
+                return false;
+        }
+        public static void WriteUserStringsToFile(List<string> UserStrings)
+        {
+            UserStrings.Sort(); //Sort alphabetically for neatness
+            var UserDictionary = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + "spch_user_dictionary.txt";
+            foreach (var userString in UserStrings)
+                using (StreamWriter file = new StreamWriter(UserDictionary, append: true))
+                    file.WriteLine(userString); //Write them into the user dictionary
         }
     }
 }
