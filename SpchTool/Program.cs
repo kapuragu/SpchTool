@@ -164,18 +164,18 @@ namespace SpchTool
         {
             foreach (var label in spch.Labels) // Analyze hashes
             {
-                if (UserStringCheck(label.LabelName.StringLiteral, UserStrings, hashManager))
+                if (IsUserString(label.LabelName.StringLiteral, UserStrings, hashManager))
                     UserStrings.Add(label.LabelName.StringLiteral);
                 foreach (var voiceClip in label.VoiceClips)
                 {
-                    if (UserStringCheck(voiceClip.VoiceType.StringLiteral, UserStrings, hashManager))
+                    if (IsUserString(voiceClip.VoiceType.StringLiteral, UserStrings, hashManager))
                         UserStrings.Add(voiceClip.VoiceType.StringLiteral);
-                    if (UserStringCheck(voiceClip.AnimationAct.StringLiteral, UserStrings, hashManager))
+                    if (IsUserString(voiceClip.AnimationAct.StringLiteral, UserStrings, hashManager))
                         UserStrings.Add(voiceClip.AnimationAct.StringLiteral);
                 }
             }
         }
-        public static bool UserStringCheck(string userString, List<string> list, HashManager hashManager)
+        public static bool IsUserString(string userString, List<string> list, HashManager hashManager)
         {
             if (!hashManager.StrCode32LookupTable.ContainsValue(userString) && !list.Contains(userString))
                 return true;
