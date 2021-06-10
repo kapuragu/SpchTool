@@ -6,7 +6,7 @@ https://github.com/youarebritish/LbaTool
 Requirements
 --------
 ```
-Microsoft .NET Framework 4.5 
+Microsoft .NET Framework 4.5.1 
 ```
 
 Usage
