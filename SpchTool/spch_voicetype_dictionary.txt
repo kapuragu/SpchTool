@@ -1,4 +1,3 @@
-Ishmael
 chsol_a
 chsol_b
 chsol_c
@@ -15,11 +14,13 @@ ene_d
 ene_d_fml
 enemy
 hostage_a
+hostage_a_af
 hostage_a_fml
 hostage_a_kg
 hostage_a_ps
 hostage_a_ru
 hostage_b
+hostage_b_af
 hostage_b_fml
 hostage_b_kg
 hostage_b_ps
@@ -30,6 +31,7 @@ hostage_d
 hostage_d_fml
 hq
 huey
+Ishmael
 miller
 ocelot
 paz
