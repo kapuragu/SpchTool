@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SpchTool
 {
@@ -7,10 +9,8 @@ namespace SpchTool
 
     public class HashManager
     {
-        private const ulong MetaFlag = 0x4000000000000;
-
         public Dictionary<uint, string> StrCode32LookupTable = new Dictionary<uint, string>();
-        public Dictionary<uint, string> PathCode32LookupTable = new Dictionary<uint, string>();
+        public Dictionary<uint, string> Fnv1LookupTable = new Dictionary<uint, string>();
         public Dictionary<uint, string> UsedHashes = new Dictionary<uint, string>();
 
         public static uint StrCode32(string text)
@@ -20,53 +20,6 @@ namespace SpchTool
             ulong seed1 = text.Length > 0 ? (uint)((text[0]) << 16) + (uint)text.Length : 0;
             return (uint)(CityHash.CityHash.CityHash64WithSeeds(text + "\0", seed0, seed1) & 0xFFFFFFFFFFFF);
         }
-
-        private static ulong HashFileName(string text, bool removeExtension = true)
-        {
-            if (removeExtension)
-            {
-                int index = text.IndexOf('.');
-                text = index == -1 ? text : text.Substring(0, index);
-            }
-
-            bool metaFlag = false;
-            const string assetsConstant = "/Assets/";
-            if (text.StartsWith(assetsConstant))
-            {
-                text = text.Substring(assetsConstant.Length);
-
-                if (text.StartsWith("tpptest"))
-                {
-                    metaFlag = true;
-                }
-            }
-            else
-            {
-                metaFlag = true;
-            }
-
-            text = text.TrimStart('/');
-
-            const ulong seed0 = 0x9ae16a3b2f90404f;
-            byte[] seed1Bytes = new byte[sizeof(ulong)];
-            for (int i = text.Length - 1, j = 0; i >= 0 && j < sizeof(ulong); i--, j++)
-            {
-                seed1Bytes[j] = Convert.ToByte(text[i]);
-            }
-
-            ulong seed1 = BitConverter.ToUInt64(seed1Bytes, 0);
-            ulong maskedHash = CityHash.CityHash.CityHash64WithSeeds(text, seed0, seed1) & 0x3FFFFFFFFFFFF;
-
-            return metaFlag
-                ? maskedHash | MetaFlag
-                : maskedHash;
-        }
-
-        public static uint PathCode32(string path)
-        {
-            return (uint)(HashFileName(path));
-        }
-
         /// <summary>
         /// Whenever a hash is identified, keep track of it so we can output a list of all matching hashes.
         /// </summary>
@@ -79,5 +32,49 @@ namespace SpchTool
                 UsedHashes.Add(hashValue, stringLiteral);
             }
         }
+        public abstract class FNVHash : HashAlgorithm
+        {
+            protected const uint FNV32_PRIME = 16777619;
+            protected const uint FNV32_OFFSETBASIS = 2166136261;
+
+            public FNVHash(int hashSize)
+            {
+                this.HashSizeValue = hashSize;
+                this.Initialize();
+            }
+        }
+
+        public class FNV1Hash32 : FNVHash
+        {
+            private uint _hash;
+
+            public FNV1Hash32()
+                : base(32) { }
+
+            public override void Initialize()
+            {
+                _hash = FNV32_OFFSETBASIS;
+            }
+
+            protected override void HashCore(byte[] array, int ibStart, int cbSize)
+            {
+                for (int i = 0; i < cbSize; i++)
+                    _hash = (_hash * FNV32_PRIME) ^ array[ibStart + i];
+            }
+
+            protected override byte[] HashFinal()
+            {
+                return BitConverter.GetBytes(_hash);
+            }
+        }
+
+        //tex fnvhash from https://gist.github.com/RobThree/25d764ea6d4849fdd0c79d15cda27d61 check.cs
+        public static uint FNV1Hash32Str(string text)
+        {
+            var fnvHash = new FNV1Hash32();
+            var value = fnvHash.ComputeHash(Encoding.UTF8.GetBytes(text));//DEBUGNOW encoding? -v-
+            var hash = BitConverter.ToUInt32(value, 0);
+            return hash;
+        }//FNV1Hash32Str
     }
 }

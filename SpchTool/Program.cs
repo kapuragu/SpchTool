@@ -26,14 +26,26 @@ namespace SpchTool
                 "spch_anim_dictionary.txt",
                 "spch_user_dictionary.txt",
             };
+            List<string> fnvDictionaryNames = new List<string>
+            {
+                "spch_fnv_voiceevent_dictionary.txt",
+                "spch_fnv_voiceid_dictionary.txt",
+                "spch_user_dictionary.txt",
+            };
 
-            List<string> dictionaries = new List<string>();
+            List<string> strCodeDictionaries = new List<string>();
+            List<string> fnvDictionaries = new List<string>();
 
             foreach (var dictionaryPath in dictionaryNames)
                 if (File.Exists(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath))
-                    dictionaries.Add(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath);
+                    strCodeDictionaries.Add(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath);
 
-			hashManager.StrCode32LookupTable = MakeHashLookupTableFromFiles(dictionaries, FoxHash.Type.StrCode32);
+            foreach (var dictionaryPath in fnvDictionaryNames)
+                if (File.Exists(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath))
+                    fnvDictionaries.Add(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/" + dictionaryPath);
+
+            hashManager.StrCode32LookupTable = MakeStrCode32HashLookupTableFromFiles(strCodeDictionaries);
+            hashManager.Fnv1LookupTable = MakeFnv1HashLookupTableFromFiles(fnvDictionaries);
 
             List<string> UserStrings = new List<string>();
 
@@ -115,7 +127,7 @@ namespace SpchTool
         /// <summary>
         /// Opens a file containing one string per line from the input table of files, hashes each string, and adds each pair to a lookup table.
         /// </summary>
-        private static Dictionary<uint, string> MakeHashLookupTableFromFiles(List<string> paths, FoxHash.Type hashType)
+        private static Dictionary<uint, string> MakeStrCode32HashLookupTableFromFiles(List<string> paths)
         {
             ConcurrentDictionary<uint, string> table = new ConcurrentDictionary<uint, string>();
 
@@ -137,11 +149,36 @@ namespace SpchTool
             // Hash entries
             Parallel.ForEach(stringLiterals, (string entry) =>
             {
-                if (hashType == FoxHash.Type.StrCode32)
+                uint hash = HashManager.StrCode32(entry);
+                table.TryAdd(hash, entry);
+            });
+
+            return new Dictionary<uint, string>(table);
+        }
+        private static Dictionary<uint, string> MakeFnv1HashLookupTableFromFiles(List<string> paths)
+        {
+            ConcurrentDictionary<uint, string> table = new ConcurrentDictionary<uint, string>();
+
+            // Read file
+            List<string> stringLiterals = new List<string>();
+            foreach (var dictionary in paths)
+            {
+                using (StreamReader file = new StreamReader(dictionary))
                 {
-                    uint hash = HashManager.StrCode32(entry);
-                    table.TryAdd(hash, entry);
+                    // TODO multi-thread
+                    string line;
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        stringLiterals.Add(line);
+                    }
                 }
+            }
+
+            // Hash entries
+            Parallel.ForEach(stringLiterals, (string entry) =>
+            {
+                uint hash = HashManager.FNV1Hash32Str(entry);
+                table.TryAdd(hash, entry);
             });
 
             return new Dictionary<uint, string>(table);
@@ -164,20 +201,24 @@ namespace SpchTool
         {
             foreach (var label in spch.Labels) // Analyze hashes
             {
-                if (IsUserString(label.LabelName.StringLiteral, UserStrings, hashManager))
+                if (IsUserString(label.LabelName.StringLiteral, UserStrings, hashManager.StrCode32LookupTable))
                     UserStrings.Add(label.LabelName.StringLiteral);
+                if (IsUserString(label.VoiceEvent.StringLiteral, UserStrings, hashManager.Fnv1LookupTable))
+                    UserStrings.Add(label.VoiceEvent.StringLiteral);
                 foreach (var voiceClip in label.VoiceClips)
                 {
-                    if (IsUserString(voiceClip.VoiceType.StringLiteral, UserStrings, hashManager))
+                    if (IsUserString(voiceClip.VoiceType.StringLiteral, UserStrings, hashManager.StrCode32LookupTable))
                         UserStrings.Add(voiceClip.VoiceType.StringLiteral);
-                    if (IsUserString(voiceClip.AnimationAct.StringLiteral, UserStrings, hashManager))
+                    if (IsUserString(voiceClip.VoiceId.StringLiteral, UserStrings, hashManager.Fnv1LookupTable))
+                        UserStrings.Add(voiceClip.VoiceId.StringLiteral);
+                    if (IsUserString(voiceClip.AnimationAct.StringLiteral, UserStrings, hashManager.StrCode32LookupTable))
                         UserStrings.Add(voiceClip.AnimationAct.StringLiteral);
                 }
             }
         }
-        public static bool IsUserString(string userString, List<string> list, HashManager hashManager)
+        public static bool IsUserString(string userString, List<string> list, Dictionary<uint,string> dictionaryTable)
         {
-            if (!hashManager.StrCode32LookupTable.ContainsValue(userString) && !list.Contains(userString))
+            if (!dictionaryTable.ContainsValue(userString) && !list.Contains(userString))
                 return true;
             else
                 return false;

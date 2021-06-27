@@ -29,7 +29,7 @@ namespace SpchTool
             for (int i = 0; i < labelCount; i++)
             {
                 SpchLabel label = new SpchLabel();
-                label.Read(reader, hashManager.StrCode32LookupTable, hashManager.OnHashIdentified);
+                label.Read(reader, hashManager, hashManager.OnHashIdentified);
                 Labels.Add(label);
             }
         }
