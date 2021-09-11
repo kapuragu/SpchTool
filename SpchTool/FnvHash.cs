@@ -37,7 +37,7 @@ namespace SpchTool
             }
             else
             {
-                StringLiteral = value;
+                StringLiteral = value.ToLower();
                 HashValue = HashManager.FNV1Hash32Str(StringLiteral);
             }
         }
@@ -45,7 +45,7 @@ namespace SpchTool
         {
             if (IsStringKnown)
             {
-                writer.WriteAttributeString(label, StringLiteral);
+                writer.WriteAttributeString(label, StringLiteral.ToLower());
             }
             else
             {
